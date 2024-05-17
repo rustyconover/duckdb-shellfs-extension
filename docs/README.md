@@ -1,8 +1,8 @@
-This extension, `shellfs`, allow you to use Unix pipes for input and output in DuckDB on Unix and Mac OS X.
+The shellfs extension enables the use of Unix pipes for input and output in DuckDB on Unix and Mac OS X.
 
-If you add a pipe character `|` to the name of the filename it will be assumed to be a collection of commands to run and the output will be captured by DuckDB.
+By appending a pipe character `|` to a filename, DuckDB will treat it as a series of commands to execute and capture the output. Conversely, if you prefix a filename with `|`, DuckDB will treat it as an output pipe.  For experienced Perl programmers this is how the pipe character functioned in Perl.
 
-These examples are quite simple, in real world use you'd likely be running another program that produces CSV, JSON or some other format to handle some complexity that DuckDB cannot handle natively.
+While the examples provided are simple, in practical scenarios, you might use this feature to run another program that generates CSV, JSON, or other formats to manage complexities that DuckDB cannot handle directly.
 
 ### Examples of reading output into DuckDB
 
@@ -56,6 +56,7 @@ SELECT abbreviation, unixtime from read_json('curl -s http://worldtimeapi.org/ap
 -- Write all numbers from 1 to 30 out, but then filter via grep
 -- for only lines that contain 6.
 COPY (select * from unnest(generate_series(1, 30))) TO '| grep 6 > numbers.csv' (FORMAT 'CSV');
+
 ```
 
 
@@ -79,16 +80,7 @@ The main binaries that will be built are:
 ## Running the extension
 To run the extension code, simply start the shell with `./build/release/duckdb`.
 
-Now we can use the features from the extension directly in DuckDB. The template contains a single scalar function `quack()` that takes a string arguments and returns a string:
-```
-D select quack('Jane') as result;
-┌───────────────┐
-│    result     │
-│    varchar    │
-├───────────────┤
-│ Quack Jane 🐥 │
-└───────────────┘
-```
+Now we can use the features from the extension directly in DuckDB.
 
 ## Running the tests
 Different tests can be created for DuckDB extensions. The primary way of testing DuckDB extensions should be the SQL tests in `./test/sql`. These SQL tests can be run using:
