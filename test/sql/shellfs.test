@@ -1,0 +1,25 @@
+# name: test/sql/shellfs.test
+# description: test shellfs extension
+# group: [shellfs]
+
+# Require statement will ensure this test is run with this extension loaded
+require shellfs
+
+# Confirm the extension works
+query I
+SELECT content from read_text('printf "Hello World" |');
+----
+Hello World
+
+query I
+SELECT trim(content, chr(10)) from read_text('printf "Hello World\nFoo" | grep "Foo" |');
+----
+Foo
+
+statement ok
+COPY (select * from unnest(generate_series(1, 100))) TO '| grep 20 > __TEST_DIR__/grep-test-pipe.csv';
+
+query I
+SELECT column0 FROM read_csv_auto('__TEST_DIR__/grep-test-pipe.csv');
+----
+20
