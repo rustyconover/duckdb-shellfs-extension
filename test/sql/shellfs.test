@@ -7,14 +7,14 @@ require shellfs
 
 # Confirm the extension works
 query I
-SELECT trim(content, chr(10)) from read_text('python3 -c "print(''Hello World'')" |');
+SELECT count(distinct column0) from read_csv('python3 -c "print(''\n''.join([f''{i},{i}'' for i in range(100)]))" |')
 ----
-Hello World
+100
 
 query I
-SELECT trim(content, chr(10)) from read_text('python3 -c "print(''Hello World\nFoo'')" | grep "Foo" |');
+SELECT count(distinct column0) from read_csv('python3 -c "print(''\n''.join([f''{i},{i}'' for i in range(100)]))" | grep 2 |')
 ----
-Foo
+19
 
 statement ok
 COPY (select * from unnest(generate_series(1, 100))) TO '| grep 20 > __TEST_DIR__/grep-test-pipe.csv';
