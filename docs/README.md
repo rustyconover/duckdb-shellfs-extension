@@ -36,7 +36,8 @@ SELECT * from read_csv('seq 1 35 | awk "\$1 % 7 == 0" | head -n 2 |');
 └─────────┘
 
 -- Do some arbitrary curl
-SELECT abbreviation, unixtime from read_json('curl -s http://worldtimeapi.org/api/timezone/Etc/UTC  |');
+SELECT abbreviation, unixtime from
+read_json('curl -s http://worldtimeapi.org/api/timezone/Etc/UTC  |');
 ┌──────────────┬────────────┐
 │ abbreviation │  unixtime  │
 │   varchar    │   int64    │
@@ -59,7 +60,8 @@ for i in range(10000000):
 Run that program and determine the number of distinct values it produces:
 
 ```sql
-select count(distinct counter1) from read_csv('./test-csv.py |');
+select count(distinct counter1)
+from read_csv('./test-csv.py |');
 ┌──────────────────────────┐
 │ count(DISTINCT counter1) │
 │          int64           │
@@ -75,13 +77,15 @@ select count(distinct counter1) from read_csv('./test-csv.py |');
 ```sql
 -- Write all numbers from 1 to 30 out, but then filter via grep
 -- for only lines that contain 6.
-COPY (select * from unnest(generate_series(1, 30))) TO '| grep 6 > numbers.csv' (FORMAT 'CSV');
+COPY (select * from unnest(generate_series(1, 30)))
+TO '| grep 6 > numbers.csv' (FORMAT 'CSV');
 6
 16
 26
 
 -- Copy the result set to the clipboard on Mac OS X using pbcopy
-COPY (select 'hello' as type, from unnest(generate_series(1, 30))) TO '| grep 3 | pbcopy' (FORMAT 'CSV');
+COPY (select 'hello' as type, from unnest(generate_series(1, 30)))
+TO '| grep 3 | pbcopy' (FORMAT 'CSV');
 type,"generate_series(1, 30)"
 hello,3
 hello,13
@@ -89,8 +93,8 @@ hello,23
 hello,30
 
 -- Write an encrypted file out via openssl
-COPY (select 'hello' as type, * from unnest(generate_series(1, 30))) TO '| openssl enc -aes-256-cbc -salt -in - -out example.enc -pbkdf2 -iter 1000 -pass pass:testing12345' (FORMAT 'JSON');
-
+COPY (select 'hello' as type, * from unnest(generate_series(1, 30)))
+TO '| openssl enc -aes-256-cbc -salt -in - -out example.enc -pbkdf2 -iter 1000 -pass pass:testing12345' (FORMAT 'JSON');
 
 ```
 
