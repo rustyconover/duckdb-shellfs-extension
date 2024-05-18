@@ -131,6 +131,7 @@ unique_ptr<FileHandle> ShellFileSystem::OpenFile(const string &path, FileOpenFla
 #endif
 	}
 
+#ifndef _WIN32
 	Value value;
 	bool ignore_sigpipe = false;
 	if (FileOpener::TryGetCurrentSetting(opener, "ignore_sigpipe", value))
@@ -141,6 +142,7 @@ unique_ptr<FileHandle> ShellFileSystem::OpenFile(const string &path, FileOpenFla
 	if(ignore_sigpipe) {
 		signal(SIGPIPE, SIG_IGN);
 	}
+#endif
 
 	return make_uniq<ShellFileHandle>(*this, path, pipe);
 }
