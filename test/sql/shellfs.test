@@ -7,12 +7,12 @@ require shellfs
 
 # Confirm the extension works
 query I
-SELECT content from read_text('printf "Hello World" |');
+SELECT trim(content, chr(10)) from read_text('echo "Hello World" |');
 ----
 Hello World
 
 query I
-SELECT trim(content, chr(10)) from read_text('printf "Hello World\nFoo" | grep "Foo" |');
+SELECT trim(content, chr(10)) from read_text('echo "Hello World\nFoo" | grep "Foo" |');
 ----
 Foo
 

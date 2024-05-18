@@ -1,21 +1,16 @@
-The shellfs extension enables the use of Unix pipes for input and output in DuckDB on Unix and Mac OS X.
+The shellfs extension enables the use of Unix pipes for input and output in DuckDB.
 
 By appending a pipe character `|` to a filename, DuckDB will treat it as a series of commands to execute and capture the output. Conversely, if you prefix a filename with `|`, DuckDB will treat it as an output pipe.
 
-While the examples provided are simple, in practical scenarios, you might use this feature to run another program that generates CSV, JSON, or other formats to manage complexities that DuckDB cannot handle directly.
+While the examples provided are simple, in practical scenarios, you might use this feature to run another program that generates CSV, JSON, or other formats to manage complexity that DuckDB cannot handle directly.
 
-### Examples of reading output into DuckDB
+The implementation uses `popen()` to create the pipe between processes.
+
+## Examples
+
+### Reading input from a pipe
 
 ```sql
--- Really simple hello world, obviously not necessary.
-SELECT content from read_text('printf "Hello World" |');
-┌─────────────┐
-│   content   │
-│   varchar   │
-├─────────────┤
-│ Hello World │
-└─────────────┘
-
 -- Generate a sequence only return numbers that contain a 2
 SELECT * from read_csv('seq 1 100 | grep 2 |');
 ┌─────────┐
@@ -50,7 +45,32 @@ SELECT abbreviation, unixtime from read_json('curl -s http://worldtimeapi.org/ap
 └──────────────┴────────────┘
 ```
 
-### Examples of writing output
+
+Create a program to generate CSV in Python:
+
+```python
+#!/usr/bin/env python3
+
+print("counter1,counter2")
+for i in range(10000000):
+    print(f"{i},{i}")
+```
+
+Run that program and determine the number of distinct values it produces:
+
+```sql
+select count(distinct counter1) from read_csv('./test-csv.py |');
+┌──────────────────────────┐
+│ count(DISTINCT counter1) │
+│          int64           │
+├──────────────────────────┤
+│                 10000000 │
+└──────────────────────────┘
+```
+
+
+
+### Writing output to a pipe
 
 ```sql
 -- Write all numbers from 1 to 30 out, but then filter via grep
@@ -74,7 +94,71 @@ COPY (select 'hello' as type, * from unnest(generate_series(1, 30))) TO '| opens
 
 ```
 
+## Configuration
 
+This extension introduces a new configuration option:
+
+`ignore_sigpipe` - a boolean option that, when set to true, ignores the SIGPIPE signal. This is useful when writing to a pipe that stops reading input. For example:
+
+```sql
+COPY (select 'hello' as type, * from unnest(generate_series(1, 300))) TO '| head -n 100';
+```
+
+In this scenario, DuckDB attempts to write 300 lines to the pipe, but the `head` command only reads the first 100 lines. After `head` reads the first 100 lines and exits, it closes the pipe. The next time DuckDB tries to write to the pipe, it receives a SIGPIPE signal. By default, this causes DuckDB to exit. However, if `ignore_sigpipe` is set to true, the SIGPIPE signal is ignored, allowing DuckDB to continue without error even if the pipe is closed.
+
+You can enable this option by setting it with the following command:
+
+```sql
+set ignore_sigpipe = true;
+```
+
+## Caveats
+
+When using `read_text()` or `read_blob()` the contents of the data read from a pipe is limited to 2GB in size.  This is the maximum length of a single row's value.
+
+When using `read_csv()` or `read_json()` the contents of the pipe can be unlimited as it is processed in a streaming fashion.
+
+A demonstration of this would be:
+
+```python
+#!/usr/bin/env python3
+
+print("counter1,counter2")
+for i in range(10000000):
+    print(f"{i},{i}")
+```
+
+```sql
+select count(distinct counter1) from read_csv('./test-csv.py |');
+┌──────────────────────────┐
+│ count(DISTINCT counter1) │
+│          int64           │
+├──────────────────────────┤
+│                 10000000 │
+└──────────────────────────┘
+```
+
+If a `limit` clause is used you may see an error like this:
+
+```sql
+select * from read_csv('./test-csv.py |') limit 3;
+┌──────────┬──────────┐
+│ counter1 │ counter2 │
+│  int64   │  int64   │
+├──────────┼──────────┤
+│        0 │        0 │
+│        1 │        1 │
+│        2 │        2 │
+└──────────┴──────────┘
+Traceback (most recent call last):
+  File "/Users/rusty/Development/duckdb-shell-extension/./test-csv.py", line 5, in <module>
+    print(f"{i},{i}")
+BrokenPipeError: [Errno 32] Broken pipe
+Exception ignored in: <_io.TextIOWrapper name='<stdout>' mode='w' encoding='utf-8'>
+BrokenPipeError: [Errno 32] Broken pipe
+```
+
+DuckDB continues to run, but the program that was producing output received a SIGPIPE error and wrote its error message to STDERR. It is up to the user to decide whether to suppress this error and determine the best course of action.
 
 ## Building
 
@@ -132,6 +216,7 @@ Note that the `/latest` path will allow you to install the latest extension vers
 DuckDB. To specify a specific version, you can pass the version instead.
 
 After running these steps, you can install and load your extension using the regular INSTALL/LOAD commands in DuckDB:
+
 ```sql
 INSTALL shellfs
 LOAD shellfs
