@@ -1,4 +1,6 @@
-![DuckDB Shellfs Extension logo](duckdb-shellfs.jpg)
+# DuckDB Shellfs Extension
+
+![DuckDB Shellfs Extension logo](duckdb-shellfs.jpg | width=300)
 
 The `shellfs` extension for DuckDB enables the use of Unix pipes for input and output.
 
