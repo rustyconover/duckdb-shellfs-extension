@@ -1,6 +1,6 @@
 The shellfs extension enables the use of Unix pipes for input and output in DuckDB on Unix and Mac OS X.
 
-By appending a pipe character `|` to a filename, DuckDB will treat it as a series of commands to execute and capture the output. Conversely, if you prefix a filename with `|`, DuckDB will treat it as an output pipe.  For experienced Perl programmers this is how the pipe character functioned in Perl.
+By appending a pipe character `|` to a filename, DuckDB will treat it as a series of commands to execute and capture the output. Conversely, if you prefix a filename with `|`, DuckDB will treat it as an output pipe.
 
 While the examples provided are simple, in practical scenarios, you might use this feature to run another program that generates CSV, JSON, or other formats to manage complexities that DuckDB cannot handle directly.
 
@@ -56,8 +56,24 @@ SELECT abbreviation, unixtime from read_json('curl -s http://worldtimeapi.org/ap
 -- Write all numbers from 1 to 30 out, but then filter via grep
 -- for only lines that contain 6.
 COPY (select * from unnest(generate_series(1, 30))) TO '| grep 6 > numbers.csv' (FORMAT 'CSV');
+6
+16
+26
+
+-- Copy the result set to the clipboard on Mac OS X using pbcopy
+COPY (select 'hello' as type, from unnest(generate_series(1, 30))) TO '| grep 3 | pbcopy' (FORMAT 'CSV');
+type,"generate_series(1, 30)"
+hello,3
+hello,13
+hello,23
+hello,30
+
+-- Write an encrypted file out via openssl
+COPY (select 'hello' as type, * from unnest(generate_series(1, 30))) TO '| openssl enc -aes-256-cbc -salt -in - -out example.enc -pbkdf2 -iter 1000 -pass pass:testing12345' (FORMAT 'JSON');
+
 
 ```
+
 
 
 ## Building
