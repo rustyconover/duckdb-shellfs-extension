@@ -1,4 +1,6 @@
-The shellfs extension enables the use of Unix pipes for input and output in DuckDB.
+![DuckDB Shellfs Extension logo](duckdb-shellfs.jpg)
+
+The `shellfs` extension for DuckDB enables the use of Unix pipes for input and output.
 
 By appending a pipe character `|` to a filename, DuckDB will treat it as a series of commands to execute and capture the output. Conversely, if you prefix a filename with `|`, DuckDB will treat it as an output pipe.
 
