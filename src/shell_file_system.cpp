@@ -54,7 +54,7 @@ public:
 #ifndef _WIN32
 		result = pclose(pipe);
 #else
-		result = _pclose(pipe)
+		result = _pclose(pipe);
 #endif
 
 		if(result == -1) {
