@@ -27,13 +27,8 @@
 
 #include <io.h>
 #include <string>
+#include <stdio.h>
 
-#ifdef __MINGW32__
-// need to manually define this for mingw
-extern "C" WINBASEAPI BOOL WINAPI GetPhysicallyInstalledSystemMemory(PULONGLONG);
-#endif
-
-#undef FILE_CREATE // woo mingw
 #endif
 
 
@@ -54,7 +49,15 @@ public:
 		if(!pipe) {
 			return;
 		}
-		if(pclose(pipe) == -1) {
+		int result;
+
+#ifndef _WIN32
+		result = pclose(pipe);
+#else
+		result = _pclose(pipe)
+#endif
+
+		if(result == -1) {
 			throw IOException("Could not close pipe \"%s\": %s", {{"errno", std::to_string(errno)}}, path,
 												strerror(errno));
 		}
@@ -112,12 +115,20 @@ unique_ptr<FileHandle> ShellFileSystem::OpenFile(const string &path, FileOpenFla
 	if (path.front() == '|')
 	{
 		// We want to write to the pipe.
+#ifndef _WIN32
 		pipe = popen(path.substr(1, path.size()).c_str(), "w");
+#else
+		pipe = _popen(path.substr(1, path.size()).c_str(), "w");
+#endif
 	}
 	else
 	{
 		// We want to read from the pipe
+#ifndef _WIN32
 		pipe = popen(path.substr(0, path.size()-1).c_str(), "r");
+#else
+		pipe = _popen(path.substr(0, path.size()-1).c_str(), "r");
+#endif
 	}
 
 	Value value;
