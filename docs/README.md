@@ -166,7 +166,7 @@ Exception ignored in: <_io.TextIOWrapper name='<stdout>' mode='w' encoding='utf-
 BrokenPipeError: [Errno 32] Broken pipe
 ```
 
-DuckDB continues to run, but the program that was producing output received a SIGPIPE error and wrote its error message to STDERR. It is up to the user to decide whether to suppress this error and determine the best course of action.
+DuckDB continues to run, but the program that was producing output received a SIGPIPE signal because DuckDB closed the pipe after reading the necessary number of rows.  It is up to the user of DuckDB to decide whether to suppress this behavior by setting the `ignore_sigpipe` configuration parameter.
 
 ## Building
 

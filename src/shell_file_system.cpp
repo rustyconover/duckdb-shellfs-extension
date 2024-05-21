@@ -49,6 +49,7 @@ public:
 		if(!pipe) {
 			return;
 		}
+
 		int result;
 
 #ifndef _WIN32
@@ -56,12 +57,27 @@ public:
 #else
 		result = _pclose(pipe);
 #endif
+		// Indicate that the pipe has been closed.
+		pipe = NULL;
 
 		if(result == -1) {
 			throw IOException("Could not close pipe \"%s\": %s", {{"errno", std::to_string(errno)}}, path,
 												strerror(errno));
+		} else {
+#ifndef _WIN32
+			if(WIFEXITED(result)) {
+				int exit_status = WEXITSTATUS(result);
+				if (exit_status != 0) {
+					throw IOException("Pipe process exited with non-zero exit code=\"%d\": %s", exit_status, path);
+				} else if (WIFSIGNALED(result)) {
+					int signal_number = WTERMSIG(result);
+					throw IOException("Pipe process exited with signal signal=\"%d\": %s", signal_number, path);
+				} else if(exit_status != 0) {
+					throw IOException("Pipe process exited abnormally: %s", path);
+				}
+			}
+#endif
 		}
-		pipe = NULL;
 	};
 };
 
@@ -77,6 +93,12 @@ int64_t ShellFileSystem::Read(FileHandle &handle, void *buffer, int64_t nr_bytes
 	{
 		throw IOException("Could not read from pipe \"%s\": %s", {{"errno", std::to_string(errno)}}, handle.path,
 		                  strerror(errno));
+	}
+	if (bytes_read == 0) {
+		// Since the last read() returned 0 bytes, presume that EOF has been encountered, and rather than
+		// having the close, by doing this if there are errors with the pipe they are caught in the query
+		// rather than in the destructor.
+		handle.Close();
 	}
 	return bytes_read;
 }
