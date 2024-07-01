@@ -1,0 +1,13 @@
+# name: test/sql/json.test
+# description: test shellfs extension
+# group: [shellfs]
+
+# Require statement will ensure this test is run with this extension loaded
+require shellfs
+
+require json
+
+query I
+SELECT count(*) FROM (DESCRIBE select * from read_json('curl -s http://worldtimeapi.org/api/timezone/Etc/UTC  |'));
+----
+15
