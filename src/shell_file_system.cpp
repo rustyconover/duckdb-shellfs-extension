@@ -88,6 +88,11 @@ void ShellFileSystem::Reset(FileHandle &handle) {
 
 int64_t ShellFileSystem::Read(FileHandle &handle, void *buffer, int64_t nr_bytes) {
 	FILE *pipe = handle.Cast<ShellFileHandle>().pipe;
+
+	if (!pipe) {
+		return 0;
+	}
+
 	int64_t bytes_read = fread(buffer, 1, nr_bytes, pipe);
 	if (bytes_read == -1)
 	{
