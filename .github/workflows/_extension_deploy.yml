@@ -22,7 +22,7 @@ on:
       exclude_archs:
         required: false
         type: string
-        default: "windows_amd64;windows_amd64_rtools"
+        default: "wasm_mvp;wasm_eh;wasm_threads"
       # Whether to upload this deployment as the latest. This may overwrite a previous deployment.
       deploy_latest:
         required: false
