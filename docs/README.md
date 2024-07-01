@@ -74,6 +74,20 @@ from read_csv('./test-csv.py |');
 └──────────────────────────┘
 ```
 
+When a command is not found or able to be executed, this is the result:
+
+```sql
+ SELECT count(distinct column0) from read_csv('foo |');
+sh: foo: command not found
+┌─────────────────────────┐
+│ count(DISTINCT column0) │
+│          int64          │
+├─────────────────────────┤
+│                       0 │
+└─────────────────────────┘
+```
+
+The reason why there isn't an exception raised in this cause is because the `popen()` implementation starts a shell process, but that shell process
 
 
 ### Writing output to a pipe
