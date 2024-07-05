@@ -10,11 +10,29 @@ While the examples provided are simple, in practical scenarios, you might use th
 
 The implementation uses `popen()` to create the pipe between processes.
 
+## Installation
+
+**`shellfs` is a [DuckDB Community Extension](https://github.com/duckdb/community-extensions).**
+
+You can now use this by using this SQL:
+
+```sql
+install shellfs from community;
+load shellfs;
+```
+
+---
+
 ## Examples
 
 ### Reading input from a pipe
 
 ```sql
+
+-- Install the extension.
+install shellfs from community;
+load shellfs;
+
 -- Generate a sequence only return numbers that contain a 2
 SELECT * from read_csv('seq 1 100 | grep 2 |');
 ┌─────────┐
