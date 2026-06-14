@@ -37,6 +37,11 @@ namespace duckdb
 			return false;
 		}
 
+		// Seek/SeekPosition are not overridden and throw via the base class.
+		// GetFileSize always returns 0 (pipes have no known size).
+		// Reset throws "Cannot reset shell file system".
+		// Consumers must check CanSeek() or guard these calls.
+
 		bool CanHandleFile(const string &fpath) override;
 
 		bool IsPipe(const string &filename, optional_ptr<FileOpener> opener) override
