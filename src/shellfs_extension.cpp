@@ -23,7 +23,7 @@ namespace duckdb
 		// When writing to a PIPE ignore the SIGPIPE error and consider that the write succeeded.
 		config.AddExtensionOption("ignore_sigpipe", "Ignore SIGPIPE", LogicalType::BOOLEAN, Value(false));
 
-		QueryFarmSendTelemetry(loader, "shellfs", "2025120402");
+		QueryFarmSendTelemetry(loader, "shellfs", "2026072501");
 	}
 
 	void ShellfsExtension::Load(ExtensionLoader &loader)
